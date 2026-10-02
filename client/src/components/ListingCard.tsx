@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { LuHeart, LuSparkles } from "react-icons/lu";
-import { PiCoatHanger } from "react-icons/pi";
+import { PiBelt, PiCoatHanger, PiDress, PiSunglasses } from "react-icons/pi";
 import { Link, useSearchParams } from "react-router";
 import type { Listing } from "../lib/api";
+import { bundleItems, matchesSearch, type BundleItem } from "../lib/bundleItems";
 import { conditionLabel, formatMoney, isWanted } from "../lib/format";
 import { toggleFavorite, useFavorites } from "../lib/favorites";
 import { browseUrl } from "../lib/search";
@@ -26,6 +27,7 @@ export default function ListingCard({
   const image = listing.images[0];
   const wanted = isWanted(listing);
   const size = formatSize(listing.size, listing.category, useSizeSystem());
+  const items = bundleItems(listing);
   const meta = [listing.condition && conditionLabel(listing.condition), listing.brand, listing.city].filter(Boolean);
 
   return (
@@ -44,7 +46,14 @@ export default function ListingCard({
         className="flex flex-1 flex-col no-underline"
       >
         <div className="relative aspect-3/4 overflow-hidden bg-surface-2">
-          {image ? (
+          {image && items.length > 0 ? (
+            <BundleCollage
+              image={image}
+              title={listing.title}
+              items={items}
+              keywords={searchParams.get("keywords")}
+            />
+          ) : image ? (
             <img
               src={image.url}
               srcSet={`${image.url} 400w, ${image.url2x} 800w`}
@@ -109,6 +118,69 @@ export default function ListingCard({
         </button>
       </div>
     </article>
+  );
+}
+
+// Bundles: the seller's photo on the left and a column of the items the title
+// names on the right, so "dress & shoes" shows both. An item the search asks
+// for moves to the top and gets a ring.
+const ITEM_ICONS: Record<string, typeof PiDress> = { dress: PiDress, sunglasses: PiSunglasses, belt: PiBelt };
+const MAX_TILES = 3;
+
+function BundleCollage({
+  image,
+  title,
+  items,
+  keywords,
+}: {
+  image: Listing["images"][number];
+  title: string;
+  items: BundleItem[];
+  keywords: string | null;
+}) {
+  const ordered = [...items].sort((a, b) => Number(matchesSearch(b, keywords)) - Number(matchesSearch(a, keywords)));
+  const shown = ordered.slice(0, MAX_TILES);
+  const more = ordered.length - shown.length;
+
+  return (
+    <div className="flex size-full gap-0.5 bg-bg">
+      <div className="w-2/3 shrink-0 overflow-hidden">
+        <img
+          src={image.url}
+          srcSet={`${image.url} 400w, ${image.url2x} 800w`}
+          sizes="(max-width: 640px) 33vw, 175px"
+          alt={title}
+          loading="lazy"
+          className="size-full object-cover transition duration-500 group-hover:scale-[1.03]"
+        />
+      </div>
+      <ul className="flex min-w-0 flex-1 flex-col gap-0.5" aria-label="In this bundle">
+        {shown.map((item, i) => {
+          const Icon = ITEM_ICONS[item.key] ?? PiCoatHanger;
+          const matched = matchesSearch(item, keywords);
+          return (
+            <li key={item.key} className="relative min-h-0 flex-1 overflow-hidden bg-surface-2">
+              {item.photo ? (
+                <img src={item.photo} alt="" loading="lazy" className="size-full object-cover" />
+              ) : (
+                <div className="flex size-full items-center justify-center text-ink-3">
+                  <Icon className="size-7" />
+                </div>
+              )}
+              {matched && <span className="absolute inset-0 ring-2 ring-accent ring-inset" />}
+              <span
+                className={`absolute top-1 left-1 px-1 py-px text-[10px] leading-tight font-semibold ${
+                  matched ? "bg-accent text-white" : "bg-white/85 text-ink"
+                }`}
+              >
+                {item.label}
+                {more > 0 && i === shown.length - 1 && ` +${more}`}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
