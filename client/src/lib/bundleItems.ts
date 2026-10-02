@@ -3,8 +3,8 @@ import type { Listing } from "./api";
 // What a bundle holds, read from its title ("Toddler white dress & shoes
 // bundle" → dress, shoes), so the card can show every item and not just the
 // one the seller photographed. Each item gets a small sample photo (free
-// StockSnap photos, the same ones the demo listings use; see
-// assets/bundle/CREDITS.md) or, where we have none, an icon.
+// StockSnap and Unsplash photos; see assets/bundle/CREDITS.md) or, where we
+// have none, an icon.
 export type BundleItem = { key: string; label: string; photo?: string };
 
 // Order matters: multi-word names go first and use up their words, so
@@ -34,9 +34,7 @@ const ITEMS: { key: string; label: string; pattern: RegExp }[] = [
 const PHOTOS = import.meta.glob<string>("../assets/bundle/*.jpg", { eager: true, import: "default" });
 // The kids or men's version of a photo when there is one, else the default.
 const photoFor = (key: string, audience?: string) =>
-  PHOTOS[`../assets/bundle/${key}-${audience}.jpg`] ??
-  // An adult dress would misdescribe a kids' bundle, so kids fall back to the icon.
-  (audience === "kids" && key === "dress" ? undefined : PHOTOS[`../assets/bundle/${key}.jpg`]);
+  PHOTOS[`../assets/bundle/${key}-${audience}.jpg`] ?? PHOTOS[`../assets/bundle/${key}.jpg`];
 
 export function bundleItems(listing: Listing): BundleItem[] {
   const isBundle = listing.subcategory?.endsWith("-bundles") || /\bbundle\b/i.test(listing.title);

@@ -6,7 +6,10 @@ Each is a 280px-high thumbnail of a free CC0 photo from
 use (`server/scripts/seed/listings.json`); the photo page is
 `https://stocksnap.io/photo/<id>`. `<item>-<kids|men|women>.jpg` overrides
 `<item>.jpg` for that audience. `shoes-kids.jpg` and `sneakers-kids.jpg` are
-copies of `menu/kids-shoes.jpg` (Unsplash, see `menu/CREDITS.md`).
+copies of `menu/kids-shoes.jpg` (Unsplash, see `menu/CREDITS.md`). Two are free
+[Unsplash](https://unsplash.com/license) photos, page
+`https://unsplash.com/photos/<id>`: `dress-kids.jpg` (`c51MY75XWD4`, cropped
+to the dress) and `sunglasses.jpg` (`w1ELNajqfwk`).
 
 | File | StockSnap id |
 |---|---|
